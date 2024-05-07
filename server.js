@@ -126,9 +126,9 @@ function handleLatest(req, res) {
 }
 
 function handleAddMovie(req, res) {
-    const {id,title,release_date,poster_path, overview } = req.body;
-    let sql = 'INSERT INTO movie(id,title,release_date,poster_path, overview ) VALUES($1, $2, $3, $4, $5) RETURNING *;' // sql query
-    let values = [id,title,release_date,poster_path,overview];
+    const {title,release_date,poster_path, overview, comment } = req.body;
+    let sql = 'INSERT INTO movie(title,release_date,poster_path, overview, comment ) VALUES($1, $2, $3, $4, $5) RETURNING *;' // sql query
+    let values = [title,release_date,poster_path,overview, comment];
     client.query(sql, values).then((result) => {
         console.log(result.rows);
         return res.status(201).json(result.rows);
