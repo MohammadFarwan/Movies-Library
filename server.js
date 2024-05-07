@@ -1,13 +1,25 @@
 'use strict';
 
+const PORT = 3000;
+
 //import some libraries
 const express = require('express');
+const cors = require("cors");
+const bodyParser = require('body-parser');
+require('dotenv').config();
 const data = require("./Movie Data/data.json");
 const { default: axios } = require('axios');
-require('dotenv').config();
 const apiKey = process.env.API_KEY;
+const url = process.env.url;
+
+const { Client } = require('pg')
+const client = new Client(url);
+
 const server = express();
-const PORT = 3000;
+server.use(cors());
+
+server.use(bodyParser.urlencoded({ extended: false }))
+server.use(bodyParser.json())
 
 //Routes
 server.get('/', HandleHomePage );
@@ -16,6 +28,8 @@ server.get('/trending', handleTrending );   //example: http://localhost:3000/tre
 server.get('/search', handleSearchMovie );  //example: http://localhost:3000/search?name=Spider
 server.get('/idsearch', handleSearchById ); //example:http://localhost:3000/idsearch?id=158300
 server.get('/latest', handleLatest );       //example:http://localhost:3000/latest
+server.post("/addMovie", handleAddMovie);   //http://localhost:3000/addMovie
+server.get("/getMovies", handleGetMovies); //http://localhost:3000/getMovies
 server.get('*', HandlePageNotFound)
 
 // Functions
@@ -111,14 +125,38 @@ function handleLatest(req, res) {
         })
 }
 
+function handleAddMovie(req, res) {
+    const {id,title,release_date,poster_path, overview } = req.body;
+    let sql = 'INSERT INTO movie(id,title,release_date,poster_path, overview ) VALUES($1, $2, $3, $4, $5) RETURNING *;' // sql query
+    let values = [id,title,release_date,poster_path,overview];
+    client.query(sql, values).then((result) => {
+        console.log(result.rows);
+        return res.status(201).json(result.rows);
+    }).catch()
+    // res.send("success")
+}
+
+function handleGetMovies(req, res) {
+    let sql = 'SELECT * from movie;'
+    client.query(sql).then((result) => {
+        console.log(result);
+        res.json(result.rows);
+    }).catch((err) => {
+        handleError(err, req, res);
+    });
+}
+
 function HandlePageNotFound(req,res) {
     res.status(404).send("page not found error");
 }
 
+client.connect().then(() => {
 
-server.listen(PORT, () =>{
-    console.log(`listening on ${PORT} : I am ready`);
+    server.listen(PORT, () =>{
+        console.log(`listening on ${PORT} : I am ready`);
+    })
 })
+
 
 
 // Constructors
