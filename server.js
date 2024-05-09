@@ -28,11 +28,15 @@ server.get('/trending', handleTrending );   //example: http://localhost:3000/tre
 server.get('/search', handleSearchMovie );  //example: http://localhost:3000/search?name=Spider
 server.get('/idsearch', handleSearchById ); //example:http://localhost:3000/idsearch?id=158300
 server.get('/latest', handleLatest );       //example:http://localhost:3000/latest
-server.post("/addMovie", handleAddMovie);   //http://localhost:3000/addMovie
+
+server.post("/addMovie", handleAddMovie);   //http://localhost:3000/addMovie    You have to send json data in body
 server.get("/getMovies", handleGetMovies); //http://localhost:3000/getMovies
+server.put("/UPDATE/:id", updateMovieHandler); //http://localhost:3000/UPDATE/8     You have to send json data in body
+server.delete("/DELETE/:id", deleteMovieHandler); //http://localhost:3000/DELETE/5 
+server.get("/getMovie/:id", searchMovieHandler); //http://localhost:3000/getMovie/8    
 
-
-server.get('*', HandlePageNotFound)
+server.get('*', HandlePageNotFound);
+server.use(handleError);
 
 // Functions
 function HandleHomePage(req, res) {
@@ -157,8 +161,49 @@ function HandlePageNotFound(req,res) {
 
 function handleError(error) {
     return (error);
-  }
+}
 
+function updateMovieHandler(req, res) {
+    const {title,release_date,poster_path, overview,comment } = req.body;
+    const {id} = req.params;
+    const sql = `UPDATE movie
+    SET title = $1, release_date = $2, poster_path= $3, overview = $4, comment = $5
+    WHERE id = ${id}`;
+    let values = [title,release_date,poster_path,overview,comment];
+    client.query(sql, values).then((result) => {
+        // console.log(result.rows);
+        res.send(result);
+    })
+    .catch((err) => {
+        handleError(err, req, res);
+    });
+}
+
+function deleteMovieHandler(req, res) {
+    const id = req.params.id;
+    console.log(id);
+    const sql = `DELETE FROM movie WHERE id=${id}`;
+    client.query(sql)
+        .then((data) => {
+            res.status(202).send(data);
+        })
+        .catch((err) => {
+            handleError(err, req, res);
+        });
+}
+
+function searchMovieHandler(req,res) {
+    const {id} = req.params;
+    const sql = `SELECT * FROM movie WHERE id=${id}`;
+    client.query(sql)
+    .then((result) => {
+        // console.log(result);
+        res.send(result.rows[0])
+    })
+    .catch((err) => {
+        handleError(err, req, res);
+    });
+}
 
 client.connect().then(() => {
     server.listen(PORT, () =>{
