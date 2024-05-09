@@ -30,6 +30,8 @@ server.get('/idsearch', handleSearchById ); //example:http://localhost:3000/idse
 server.get('/latest', handleLatest );       //example:http://localhost:3000/latest
 server.post("/addMovie", handleAddMovie);   //http://localhost:3000/addMovie
 server.get("/getMovies", handleGetMovies); //http://localhost:3000/getMovies
+
+
 server.get('*', HandlePageNotFound)
 
 // Functions
@@ -126,20 +128,23 @@ function handleLatest(req, res) {
 }
 
 function handleAddMovie(req, res) {
-    const {id,title,release_date,poster_path, overview } = req.body;
-    let sql = 'INSERT INTO movie(id,title,release_date,poster_path, overview ) VALUES($1, $2, $3, $4, $5) RETURNING *;' // sql query
-    let values = [id,title,release_date,poster_path,overview];
+    const {title,release_date,poster_path, overview,comment } = req.body;
+    let sql = 'INSERT INTO movie(title,release_date,poster_path, overview, comment ) VALUES($1, $2, $3, $4, $5) RETURNING *;' // sql query
+    let values = [title,release_date,poster_path,overview,comment];
     client.query(sql, values).then((result) => {
-        console.log(result.rows);
-        return res.status(201).json(result.rows);
-    }).catch()
+        // console.log(result.rows);
+        return res.status(201).json(result.rows[0]);
+    })
+    .catch((err) => {
+        handleError(err, req, res);
+    });
     // res.send("success")
 }
 
 function handleGetMovies(req, res) {
     let sql = 'SELECT * from movie;'
     client.query(sql).then((result) => {
-        console.log(result);
+        // console.log(result);
         res.json(result.rows);
     }).catch((err) => {
         handleError(err, req, res);
@@ -150,8 +155,12 @@ function HandlePageNotFound(req,res) {
     res.status(404).send("page not found error");
 }
 
-client.connect().then(() => {
+function handleError(error) {
+    return (error);
+  }
 
+
+client.connect().then(() => {
     server.listen(PORT, () =>{
         console.log(`listening on ${PORT} : I am ready`);
     })
