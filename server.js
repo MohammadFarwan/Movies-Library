@@ -1,6 +1,5 @@
 'use strict';
 
-const PORT = 3000;
 
 //import some libraries
 const express = require('express');
@@ -11,6 +10,7 @@ const data = require("./Movie Data/data.json");
 const { default: axios } = require('axios');
 const apiKey = process.env.API_KEY;
 const url = process.env.url;
+const PORT = process.env.PORT || 4000;
 
 const { Client } = require('pg')
 const client = new Client(url);
