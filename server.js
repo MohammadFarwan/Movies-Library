@@ -22,12 +22,12 @@ server.use(bodyParser.urlencoded({ extended: false }))
 server.use(bodyParser.json())
 
 //Routes
-server.get('/', HandleHomePage );
-server.get('/favorite', handleFavorite );   //example: http://localhost:3000/favorite
-server.get('/trending', handleTrending );   //example: http://localhost:3000/trending
-server.get('/search', handleSearchMovie );  //example: http://localhost:3000/search?name=Spider
-server.get('/idsearch', handleSearchById ); //example:http://localhost:3000/idsearch?id=158300
-server.get('/latest', handleLatest );       //example:http://localhost:3000/latest
+server.get('/', HandleHomePage);
+server.get('/favorite', handleFavorite);   //example: http://localhost:3000/favorite
+server.get('/trending', handleTrending);   //example: http://localhost:3000/trending
+server.get('/search', handleSearchMovie);  //example: http://localhost:3000/search?name=Spider
+server.get('/idsearch', handleSearchById); //example:http://localhost:3000/idsearch?id=158300
+server.get('/latest', handleLatest);       //example:http://localhost:3000/latest
 
 server.post("/addMovie", handleAddMovie);   //http://localhost:3000/addMovie    You have to send json data in body
 server.get("/getMovies", handleGetMovies); //http://localhost:3000/getMovies
@@ -36,7 +36,7 @@ server.delete("/DELETE/:id", deleteMovieHandler); //http://localhost:3000/DELETE
 server.get("/getMovie/:id", searchMovieHandler); //http://localhost:3000/getMovie/8    
 
 server.get('*', HandlePageNotFound);
-server.use(handleError);
+// server.use(handleError);
 
 // Functions
 function HandleHomePage(req, res) {
@@ -50,8 +50,8 @@ function HandleHomePage(req, res) {
         res.status(200).json(newMovie);
     }
 }
- 
-function handleFavorite(req,res) {
+
+function handleFavorite(req, res) {
     let str = "Welcome to Favorite Page";
     if (req.query.error === 'true') {
         res.status(500).send({
@@ -66,16 +66,16 @@ function handleFavorite(req,res) {
 function handleTrending(req, res) {
     let url = `https://api.themoviedb.org/3/trending/all/week?api_key=${apiKey}`
     axios.get(url)
-    .then(result => {
-        // console.log(result);
-        let movies = result.data.results.map(movie => {
-            return new MovieAPI(movie.id, movie.title, movie.release_date, movie.poster_path, movie.overview)
+        .then(result => {
+            // console.log(result);
+            let movies = result.data.results.map(movie => {
+                return new MovieAPI(movie.id, movie.title, movie.release_date, movie.poster_path, movie.overview)
+            })
+            res.json(movies)
         })
-        res.json(movies)
-    })
-    .catch(error => {
-        // handle error
-        console.log(error);
+        .catch(error => {
+            // handle error
+            console.log(error);
         })
 }
 
@@ -83,16 +83,16 @@ function handleSearchMovie(req, res) {
     let movieName = req.query.name;
     let url = `https://api.themoviedb.org/3/search/movie?query=${movieName}&api_key=${apiKey}`
     axios.get(url)
-    .then(result => {
-        // console.log(result);
-        let movies = result.data.results.map(movie => {
-            return new MovieAPI(movie.id, movie.title, movie.release_date, movie.poster_path, movie.overview)
+        .then(result => {
+            // console.log(result);
+            let movies = result.data.results.map(movie => {
+                return new MovieAPI(movie.id, movie.title, movie.release_date, movie.poster_path, movie.overview)
+            })
+            res.json(movies)
         })
-        res.json(movies)
-    })
-    .catch(error => {
-        // handle error
-        console.log(error);
+        .catch(error => {
+            // handle error
+            console.log(error);
         })
 }
 
@@ -101,18 +101,18 @@ function handleSearchById(req, res) {
     //?language=en-US
     let url = `https://api.themoviedb.org/3/person/${idName}?api_key=${apiKey}`;
     axios.get(url)
-    .then(result => {
-        // console.log(result);
-        console.log(result);
-        // let movies = result.data.results.map(movie => {
-        //     return 
-        // })
-        res.json(result.data)
-        // res.json(result.data)
-    })
-    .catch(error => {
-        // handle error
-        console.log(error);
+        .then(result => {
+            // console.log(result);
+            console.log(result);
+            // let movies = result.data.results.map(movie => {
+            //     return 
+            // })
+            res.json(result.data)
+            // res.json(result.data)
+        })
+        .catch(error => {
+            // handle error
+            console.log(error);
         })
 }
 
@@ -120,29 +120,30 @@ function handleLatest(req, res) {
     //?language=en-US
     let url = `https://api.themoviedb.org/3/person/latest?api_key=${apiKey}`;
     axios.get(url)
-    .then(result => {
-        console.log(result.data);
-       
-        res.json(result.data)
-    })
-    .catch(error => {
-        // handle error
-        console.log(error);
+        .then(result => {
+            console.log(result.data);
+
+            res.json(result.data)
+        })
+        .catch(error => {
+            // handle error
+            console.log(error);
         })
 }
 
 function handleAddMovie(req, res) {
-    const {title,release_date,poster_path, overview,comment } = req.body;
+    const { title, release_date, poster_path, overview, comment } = req.body;
     let sql = 'INSERT INTO movie(title,release_date,poster_path, overview, comment ) VALUES($1, $2, $3, $4, $5) RETURNING *;' // sql query
-    let values = [title,release_date,poster_path,overview,comment];
-    client.query(sql, values).then((result) => {
-        // console.log(result.rows);
-        return res.status(201).json(result.rows[0]);
-    })
-    .catch((err) => {
-        handleError(err, req, res);
-    });
-    // res.send("success")
+    let values = [title, release_date, poster_path, overview, comment];
+    client.query(sql, values)
+        .then((result) => {
+            // console.log(result.rows);
+            return res.status(201).json(result.rows[0]);
+        })
+        .catch(error => {
+            // handle error
+            console.log(error);
+        })
 }
 
 function handleGetMovies(req, res) {
@@ -155,28 +156,30 @@ function handleGetMovies(req, res) {
     });
 }
 
-function HandlePageNotFound(req,res) {
+function HandlePageNotFound(req, res) {
     res.status(404).send("page not found error");
 }
 
-function handleError(error) {
-    return (error);
-}
+// function handleError(error) {
+//     return (error);
+// }
 
 function updateMovieHandler(req, res) {
-    const {title,release_date,poster_path, overview,comment } = req.body;
-    const {id} = req.params;
+    const { title, release_date, poster_path, overview, comment } = req.body;
+    const { id } = req.params;
     const sql = `UPDATE movie
     SET title = $1, release_date = $2, poster_path= $3, overview = $4, comment = $5
     WHERE id = ${id}`;
-    let values = [title,release_date,poster_path,overview,comment];
-    client.query(sql, values).then((result) => {
-        // console.log(result.rows);
-        res.send(result);
-    })
-    .catch((err) => {
-        handleError(err, req, res);
-    });
+    let values = [title, release_date, poster_path, overview, comment];
+    client.query(sql, values)
+        .then((result) => {
+            // console.log(result.rows);
+            res.send(result);
+        })
+        .catch(error => {
+            // handle error
+            console.log(error);
+        })
 }
 
 function deleteMovieHandler(req, res) {
@@ -187,26 +190,28 @@ function deleteMovieHandler(req, res) {
         .then((data) => {
             res.status(202).send(data);
         })
-        .catch((err) => {
-            handleError(err, req, res);
-        });
+        .catch(error => {
+            // handle error
+            console.log(error);
+        })
 }
 
-function searchMovieHandler(req,res) {
-    const {id} = req.params;
+function searchMovieHandler(req, res) {
+    const { id } = req.params;
     const sql = `SELECT * FROM movie WHERE id=${id}`;
     client.query(sql)
-    .then((result) => {
-        // console.log(result);
-        res.send(result.rows[0])
-    })
-    .catch((err) => {
-        handleError(err, req, res);
-    });
+        .then((result) => {
+            // console.log(result);
+            res.send(result.rows[0])
+        })
+        .catch(error => {
+            // handle error
+            console.log(error);
+        })
 }
 
 client.connect().then(() => {
-    server.listen(PORT, () =>{
+    server.listen(PORT, () => {
         console.log(`listening on ${PORT} : I am ready`);
     })
 })
